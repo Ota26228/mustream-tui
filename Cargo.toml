@@ -1,8 +1,8 @@
 [package]
-name = "music_cli"
+name = "mustream-tui"
 version = "0.1.0"
 edition = "2024"
-description = "A terminal-based music player built with Rust"
+description = "Terminal UI client for mustream"
 license = "MIT"
 
 [dependencies]
@@ -15,4 +15,8 @@ anyhow = "1.0"
 rodio = { version = "0.17.3", features = ["mp3"] }
 dirs = "5.0.1"
 rand = "0.8.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+
 
