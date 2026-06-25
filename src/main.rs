@@ -1,7 +1,6 @@
 // src/main.rs
 
 use std::{
-    fs::File,
     io::{stdout, BufReader, Cursor},
     sync::{mpsc::{self, Receiver, Sender}, OnceLock},
     thread,
@@ -233,8 +232,9 @@ impl App {
 
     fn play_music(&mut self, song: Song) -> Result<()> {
         self.sink.stop();
-        let file = File::open(&song.path)?;
-        let reader = BufReader::new(file);
+        let bytes = api_stream(song.id)?;
+        let cursor = Cursor::new(bytes);
+        let reader = BufReader::new(cursor);
         let source = Decoder::new(reader)?;
         self.sink.append(source);
 
@@ -424,6 +424,22 @@ impl App {
 }
 
 // --- Sync API requests ---
+
+fn api_stream(song_id: i64) -> Result<Vec<u8>> {
+    let client = reqwest::blocking::Client::new();
+    let mut res = client
+        .get(&format!("{}/stream/{}", get_server_url(), song_id))
+        .send()?;
+    if !res.status().is_success() {
+        return Err(anyhow::anyhow!(
+            "Stream request failed with status: {}",
+            res.status()
+        ));
+    }
+    let mut bytes = Vec::new();
+    std::io::copy(&mut res, &mut bytes)?;
+    Ok(bytes)
+}
 
 fn api_browse(path: &str) -> Result<BrowseResponse> {
     let client = reqwest::blocking::Client::new();
